@@ -1,18 +1,40 @@
 import ctypes
-import time
+from ctypes import wintypes
 
-def get_key_pressed():
-    for i in range(8, 191):
-        if ctypes.windll.user32.GetAsyncKeyState(i) & 0x8001 != 0:
-            return i
-    return None
+user32 = ctypes.WinDLL('user32', use_last_error=True)
 
-while True:
-    pressed_key = get_key_pressed()
+VK_CODE = {i: i for i in range(256)}
 
-    if pressed_key is not None:
-        char = chr(pressed_key)
-        print("key pressed:",pressed_key,char)
-          # Adjust the delay between characters if needed
+current_sequence = []
+def check_hello(char):
+    expected_sequence = ['H', 'E', 'L', 'L', 'O']
 
-    time.sleep(0.1)
+    if char == expected_sequence[len(current_sequence)]:
+        current_sequence.append(char)
+
+        if current_sequence == expected_sequence:
+            print("hello")
+            current_sequence.clear()
+    else:
+
+        current_sequence.clear()
+
+def low_level_keyboard_handler(nCode, wParam, lParam):
+
+    if wParam == 256:
+        key = VK_CODE[lParam[0]]
+        check_hello(str(chr(key)))
+        print(chr(key))
+    return user32.CallNextHookEx(None, nCode, wParam, lParam)
+
+if __name__ == '__main__':
+    LOWLEVELKEYBOARDPROC = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_int, wintypes.WPARAM, ctypes.POINTER(ctypes.c_ulong))
+    pointer = LOWLEVELKEYBOARDPROC(low_level_keyboard_handler)
+    hook_id = user32.SetWindowsHookExA(13, pointer, 0, 0)  # WH_KEYBOARD_LL is 13
+
+    msg = ctypes.wintypes.MSG()
+    while user32.GetMessageA(ctypes.byref(msg), None, 0, 0) != 0:
+        user32.TranslateMessage(ctypes.byref(msg))
+        user32.DispatchMessageA(ctypes.byref(msg))
+
+    user32.UnhookWindowsHookEx(hook_id)
