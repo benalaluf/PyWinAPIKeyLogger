@@ -8,8 +8,6 @@ class Server:
 
         self.current_sequence = list()
 
-
-
     def main(self):
         self.sock.listen()
         print("LISTENING")
@@ -21,8 +19,7 @@ class Server:
             self.check_sequences(int(key.decode()))
             # print(chr(int(key.decode())))
 
-
-    def check_sequence(self, key, expected_sequence,message):
+    def check_sequence(self, key, expected_sequence, message):
         if len(self.current_sequence) >= len(expected_sequence):
             return False
         if key == expected_sequence[len(self.current_sequence)]:
@@ -36,9 +33,8 @@ class Server:
         return False
 
     def check_sequences(self, key):
-        self.check_sequence(key,[72,69,76,76,79],"client typed: hello")
-        self.check_sequence(key,[162,67,162,86],"stop copying!!!")
-
+        self.check_sequence(key, [72, 69, 76, 76, 79], "client typed: hello")
+        self.check_sequence(key, [162, 67, 162, 86], "stop copying!!!")
 
 
 if __name__ == '__main__':
